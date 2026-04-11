@@ -95,4 +95,20 @@ describe('OrchestratorAgent', () => {
     const result = await orchestrator.run('Propongo ciclo-rutas en Ciudad Bolívar');
     expect(result.resumen.length).toBeGreaterThan(0);
   });
+
+  it('falls back to substring summary when llm summary fails', async () => {
+    const longText = 'A'.repeat(200);
+    mockClassifier.classify.mockResolvedValue({
+      tipo: 'Queja',
+      tema: 'Infraestructura',
+      subtema: 'Malla vial',
+    });
+    mockRiskDetector.detect.mockResolvedValue({ urgencia: 'Media', riesgo: 'Ninguno' });
+    mockRouter.route.mockResolvedValue({ entidad: 'IDU' });
+    mockDeduplicator.findDuplicates.mockResolvedValue([]);
+    mockLlm.chat.mockRejectedValue(new Error('llm down'));
+
+    const result = await orchestrator.run(longText);
+    expect(result.resumen).toHaveLength(120);
+  });
 });

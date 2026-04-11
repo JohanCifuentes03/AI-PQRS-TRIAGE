@@ -46,4 +46,9 @@ describe('ClassifierAgent', () => {
 
     await expect(agent.classify('test')).rejects.toThrow('ClassifierAgent failed');
   });
+
+  it('throws when JSON misses expected keys', async () => {
+    mockLlm.chat.mockResolvedValue(JSON.stringify({ tipo: 'Queja' }));
+    await expect(agent.classify('test incompleto')).rejects.toThrow('ClassifierAgent failed');
+  });
 });

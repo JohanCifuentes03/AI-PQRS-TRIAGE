@@ -9,7 +9,7 @@ module.exports = {
   moduleNameMapper: {
     '^@ai-pqrs-triage/shared$': '<rootDir>/../../packages/shared/src/index.ts',
   },
-  collectCoverageFrom: ['src/**/*.(t|j)s', '!src/**/*.spec.ts'],
+  collectCoverageFrom: ['src/**/*.(t|j)s', '!src/**/*.spec.ts', '!src/**/*.module.ts', '!src/main.ts', '!src/app.module.ts'],
   coverageDirectory: './coverage',
   coverageThreshold: {
     global: {

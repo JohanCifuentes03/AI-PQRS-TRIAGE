@@ -38,4 +38,18 @@ describe('RouterAgent', () => {
     const result = await agent.route('Hueco en la vía');
     expect(result.entidad).toBe('IDU');
   });
+
+  it('falls back to Alcaldia Local after retries', async () => {
+    mockLlm.chat.mockResolvedValue('invalid-json');
+
+    const result = await agent.route('Texto ambiguo');
+    expect(result.entidad).toBe('Alcaldía Local');
+  });
+
+  it('falls back when JSON has no entidad key', async () => {
+    mockLlm.chat.mockResolvedValue(JSON.stringify({ foo: 'bar' }));
+
+    const result = await agent.route('Texto sin entidad');
+    expect(result.entidad).toBe('Alcaldía Local');
+  });
 });

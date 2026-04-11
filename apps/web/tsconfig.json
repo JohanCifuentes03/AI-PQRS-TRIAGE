@@ -20,6 +20,9 @@
         "./src/*"
       ]
     },
+    "types": [
+      "vitest/globals"
+    ],
     "allowJs": true,
     "incremental": true,
     "isolatedModules": true

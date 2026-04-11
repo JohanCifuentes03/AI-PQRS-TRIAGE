@@ -2,6 +2,22 @@ import { LlmProvider } from './llm.provider';
 
 describe('LlmProvider', () => {
   describe('chat', () => {
+    it('calls OpenAI client and returns content', async () => {
+      const provider = new LlmProvider();
+      (provider as any).client = {
+        chat: {
+          completions: {
+            create: jest.fn().mockResolvedValue({
+              choices: [{ message: { content: '{"tipo":"Queja"}' } }],
+            }),
+          },
+        },
+      };
+
+      const result = await provider.chat([{ role: 'user', content: 'texto' }]);
+      expect(result).toBe('{"tipo":"Queja"}');
+    });
+
     it('returns parsed content from mock', async () => {
       const provider = new LlmProvider();
       provider.chat = jest.fn().mockResolvedValue('{"tipo": "Queja"}');
@@ -16,7 +32,13 @@ describe('LlmProvider', () => {
 
     it('throws when no content returned', async () => {
       const provider = new LlmProvider();
-      provider.chat = jest.fn().mockRejectedValue(new Error('LLM returned no choices'));
+      (provider as any).client = {
+        chat: {
+          completions: {
+            create: jest.fn().mockResolvedValue({ choices: [] }),
+          },
+        },
+      };
 
       await expect(
         provider.chat([{ role: 'user', content: 'test' }]),
@@ -25,6 +47,19 @@ describe('LlmProvider', () => {
   });
 
   describe('generateEmbedding', () => {
+    it('calls OpenAI embeddings and returns vector', async () => {
+      const fakeVector = new Array(1536).fill(0.1);
+      const provider = new LlmProvider();
+      (provider as any).client = {
+        embeddings: {
+          create: jest.fn().mockResolvedValue({ data: [{ embedding: fakeVector }] }),
+        },
+      };
+
+      const result = await provider.generateEmbedding('texto de prueba');
+      expect(result).toEqual(fakeVector);
+    });
+
     it('returns embedding vector', async () => {
       const fakeVector = new Array(1536).fill(0.1);
       const provider = new LlmProvider();
@@ -36,9 +71,11 @@ describe('LlmProvider', () => {
 
     it('throws when embedding fails', async () => {
       const provider = new LlmProvider();
-      provider.generateEmbedding = jest.fn().mockRejectedValue(
-        new Error('Embedding generation failed'),
-      );
+      (provider as any).client = {
+        embeddings: {
+          create: jest.fn().mockResolvedValue({ data: [] }),
+        },
+      };
 
       await expect(provider.generateEmbedding('texto')).rejects.toThrow(
         'Embedding generation failed',

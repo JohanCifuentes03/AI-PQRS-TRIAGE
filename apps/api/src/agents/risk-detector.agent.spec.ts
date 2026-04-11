@@ -45,4 +45,18 @@ describe('RiskDetectorAgent', () => {
     const result = await agent.detect('Solicito podar un árbol');
     expect(result.urgencia).toBe('Baja');
   });
+
+  it('falls back to Alta when retries fail', async () => {
+    mockLlm.chat.mockResolvedValue('invalid-json');
+
+    const result = await agent.detect('texto ambiguo');
+    expect(result.urgencia).toBe('Alta');
+  });
+
+  it('falls back to Alta when JSON misses fields', async () => {
+    mockLlm.chat.mockResolvedValue(JSON.stringify({ urgencia: 'Media' }));
+
+    const result = await agent.detect('sin riesgo');
+    expect(result.urgencia).toBe('Alta');
+  });
 });
