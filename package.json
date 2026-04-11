@@ -1,0 +1,36 @@
+{
+  "name": "ai-pqrs-triage",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered PQRS triage system for Bogota Te Escucha",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @ai-pqrs-triage/api dev\" \"pnpm --filter @ai-pqrs-triage/web dev\"",
+    "dev:api": "pnpm --filter @ai-pqrs-triage/api dev",
+    "dev:web": "pnpm --filter @ai-pqrs-triage/web dev",
+    "build": "pnpm --filter @ai-pqrs-triage/shared build && pnpm --filter @ai-pqrs-triage/api build && pnpm --filter @ai-pqrs-triage/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test:coverage",
+    "db:migrate": "pnpm --filter @ai-pqrs-triage/api db:migrate",
+    "db:seed": "pnpm --filter @ai-pqrs-triage/api db:seed",
+    "db:studio": "pnpm --filter @ai-pqrs-triage/api db:studio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
+  }
+}

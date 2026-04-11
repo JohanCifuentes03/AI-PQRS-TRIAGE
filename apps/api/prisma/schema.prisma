@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pqrs {
+  id        String   @id @default(uuid())
+  texto     String
+  canal     String
+  tipo      String?
+  tema      String?
+  subtema   String?
+  urgencia  String?
+  entidad   String?
+  riesgo    String?
+  resumen   String?
+  confianza Float?
+  estado    String   @default("pendiente")
+  embedding Unsupported("vector(1536)")?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@map("pqrs")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  pqrsId    String
+  accion    String
+  usuario   String
+  detalles  Json?
+  createdAt DateTime @default(now())
+
+  pqrs Pqrs @relation(fields: [pqrsId], references: [id])
+
+  @@map("audit_logs")
+}
