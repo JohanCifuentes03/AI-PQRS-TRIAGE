@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/sidebar';
 import { Topbar } from '@/components/topbar';
 import { InboxShell } from '@/components/inbox-shell';
+import { IngestForm } from '@/components/ingest-form';
 import { fetchPqrsList } from '@/actions/pqrs.actions';
 
 export default async function HomePage() {
@@ -20,6 +21,8 @@ export default async function HomePage() {
             </p>
           </div>
         </div>
+
+        <IngestForm />
 
         <InboxShell
           data={pqrs.data}

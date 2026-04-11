@@ -7,7 +7,7 @@ describe('DeduplicatorAgent', () => {
 
   beforeEach(() => {
     mockLlm = { generateEmbedding: jest.fn() };
-    mockPrisma = { $queryRaw: jest.fn() };
+    mockPrisma = { $queryRaw: jest.fn(), pqrs: { findMany: jest.fn() } } as any;
     agent = new DeduplicatorAgent(mockLlm as any, mockPrisma as any);
   });
 
@@ -45,8 +45,17 @@ describe('DeduplicatorAgent', () => {
 
   it('returns empty array when embedding generation fails', async () => {
     mockLlm.generateEmbedding.mockRejectedValue(new Error('API error'));
+    (mockPrisma as any).pqrs.findMany.mockResolvedValue([]);
 
     const result = await agent.findDuplicates('Texto que falla');
     expect(result).toEqual([]);
+  });
+
+  it('falls back to text contains search when embedding fails', async () => {
+    mockLlm.generateEmbedding.mockRejectedValue(new Error('API error'));
+    (mockPrisma as any).pqrs.findMany.mockResolvedValue([{ id: 'legacy-1' }]);
+
+    const result = await agent.findDuplicates('basuras acumuladas en calle 72');
+    expect(result).toEqual(['legacy-1']);
   });
 });

@@ -4,6 +4,7 @@ describe('LlmProvider', () => {
   describe('chat', () => {
     it('calls OpenAI client and returns content', async () => {
       const provider = new LlmProvider();
+      (provider as any).enabled = true;
       (provider as any).client = {
         chat: {
           completions: {
@@ -32,6 +33,7 @@ describe('LlmProvider', () => {
 
     it('throws when no content returned', async () => {
       const provider = new LlmProvider();
+      (provider as any).enabled = true;
       (provider as any).client = {
         chat: {
           completions: {
@@ -50,6 +52,7 @@ describe('LlmProvider', () => {
     it('calls OpenAI embeddings and returns vector', async () => {
       const fakeVector = new Array(1536).fill(0.1);
       const provider = new LlmProvider();
+      (provider as any).enabled = true;
       (provider as any).client = {
         embeddings: {
           create: jest.fn().mockResolvedValue({ data: [{ embedding: fakeVector }] }),
@@ -71,6 +74,7 @@ describe('LlmProvider', () => {
 
     it('throws when embedding fails', async () => {
       const provider = new LlmProvider();
+      (provider as any).enabled = true;
       (provider as any).client = {
         embeddings: {
           create: jest.fn().mockResolvedValue({ data: [] }),
@@ -80,6 +84,12 @@ describe('LlmProvider', () => {
       await expect(provider.generateEmbedding('texto')).rejects.toThrow(
         'Embedding generation failed',
       );
+    });
+
+    it('throws disabled error when key missing', async () => {
+      const provider = new LlmProvider();
+      (provider as any).enabled = false;
+      await expect(provider.generateEmbedding('x')).rejects.toThrow('Embedding disabled');
     });
   });
 });

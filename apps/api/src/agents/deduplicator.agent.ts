@@ -30,7 +30,20 @@ export class DeduplicatorAgent {
         .filter((r) => r.similarity >= SIMILARITY_THRESHOLD)
         .map((r) => r.id);
     } catch {
-      return [];
+      const normalized = texto.toLowerCase().replace(/\s+/g, ' ').trim();
+
+      const matches = await this.prisma.pqrs.findMany({
+        where: {
+          texto: {
+            contains: normalized.slice(0, 32),
+            mode: 'insensitive',
+          },
+        },
+        take: MAX_RESULTS,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return matches.map((m) => m.id);
     }
   }
 }

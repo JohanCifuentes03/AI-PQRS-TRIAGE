@@ -38,6 +38,16 @@ Texto: "Hueco en la vía principal"
 
 const MAX_RETRIES = 2;
 
+function fallbackRouting(texto: string): { entidad: string } {
+  const t = texto.toLowerCase();
+  if (t.includes('alumbrado') || t.includes('cable') || t.includes('eléctr')) return { entidad: 'CODENSA S.A.' };
+  if (t.includes('basura') || t.includes('residuo')) return { entidad: 'UAESP' };
+  if (t.includes('eps') || t.includes('salud') || t.includes('hospital')) return { entidad: 'SDS' };
+  if (t.includes('ruido') || t.includes('bar') || t.includes('discoteca')) return { entidad: 'Secretaría de Gobierno' };
+  if (t.includes('hueco') || t.includes('vía') || t.includes('cicloruta')) return { entidad: 'IDU' };
+  return { entidad: 'Alcaldía Local' };
+}
+
 @Injectable()
 export class RouterAgent {
   constructor(private readonly llm: LlmProvider) {}
@@ -57,6 +67,6 @@ export class RouterAgent {
         continue;
       }
     }
-    return { entidad: 'Alcaldía Local' };
+    return fallbackRouting(texto);
   }
 }

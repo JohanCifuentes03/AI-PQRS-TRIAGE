@@ -41,14 +41,16 @@ describe('ClassifierAgent', () => {
     expect(mockLlm.chat).toHaveBeenCalledTimes(2);
   });
 
-  it('throws after max retries with invalid JSON', async () => {
+  it('falls back after max retries with invalid JSON', async () => {
     mockLlm.chat.mockResolvedValue('not json at all');
 
-    await expect(agent.classify('test')).rejects.toThrow('ClassifierAgent failed');
+    const result = await agent.classify('test');
+    expect(result.tipo).toBeDefined();
   });
 
-  it('throws when JSON misses expected keys', async () => {
+  it('falls back when JSON misses expected keys', async () => {
     mockLlm.chat.mockResolvedValue(JSON.stringify({ tipo: 'Queja' }));
-    await expect(agent.classify('test incompleto')).rejects.toThrow('ClassifierAgent failed');
+    const result = await agent.classify('test incompleto');
+    expect(result.tema).toBeDefined();
   });
 });

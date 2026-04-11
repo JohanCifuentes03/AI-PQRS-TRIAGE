@@ -29,7 +29,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Nota: los scripts de base de datos leen `../../.env` desde `apps/api`, asi que no necesitas exportar `DATABASE_URL` manualmente.
+Nota: todos los scripts del API (dev/start/db) leen `../../.env` desde `apps/api`, asi que no necesitas exportar variables manualmente.
 
 3. Levantar base de datos
 
