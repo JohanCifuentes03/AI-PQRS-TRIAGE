@@ -29,17 +29,25 @@ pnpm install
 cp .env.example .env
 ```
 
+Nota: los scripts de base de datos leen `../../.env` desde `apps/api`, asi que no necesitas exportar `DATABASE_URL` manualmente.
+
 3. Levantar base de datos
 
 ```bash
 docker compose up -d
 ```
 
-4. Migrar y seed
+4. Migrar y seed (entorno local no interactivo)
 
 ```bash
 pnpm db:migrate
 pnpm db:seed
+```
+
+Si necesitas crear una migracion nueva de desarrollo (interactiva), usa:
+
+```bash
+pnpm --filter @ai-pqrs-triage/api db:migrate:dev
 ```
 
 5. Ejecutar apps
