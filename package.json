@@ -4,7 +4,7 @@
   "private": true,
   "description": "AI-powered PQRS triage system for Bogota Te Escucha",
   "scripts": {
-    "dev": "concurrently \"pnpm --filter @ai-pqrs-triage/api dev\" \"pnpm --filter @ai-pqrs-triage/web dev\"",
+    "dev": "pnpm --filter @ai-pqrs-triage/shared build && concurrently \"pnpm --filter @ai-pqrs-triage/api dev\" \"pnpm --filter @ai-pqrs-triage/web dev\"",
     "dev:api": "pnpm --filter @ai-pqrs-triage/api dev",
     "dev:web": "pnpm --filter @ai-pqrs-triage/web dev",
     "build": "pnpm --filter @ai-pqrs-triage/shared build && pnpm --filter @ai-pqrs-triage/api build && pnpm --filter @ai-pqrs-triage/web build",

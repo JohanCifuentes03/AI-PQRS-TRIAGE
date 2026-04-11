@@ -56,6 +56,8 @@ pnpm --filter @ai-pqrs-triage/api db:migrate:dev
 pnpm dev
 ```
 
+`pnpm dev` ahora compila primero `packages/shared` para evitar errores de resolucion de modulos en runtime.
+
 ## Endpoints principales
 
 - `POST /triage`
