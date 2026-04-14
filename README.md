@@ -143,15 +143,9 @@ ffmpeg -video_size 1366x768 -framerate 12 -f x11grab -i :0.0+0,0 -vf "fps=10,sca
 
 Deten con `Ctrl+C`.
 
-## Insertar GIF en README
-
-Cuando tengas el archivo en `docs/demo.gif`, agrega esto:
-
-```md
 ## Demo GIF
 
 ![Demo de triage](docs/demo.gif)
-```
 
 ## Tips para demo con profesor
 
