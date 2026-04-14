@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import type { FormEvent } from 'react';
 
 export function IngestForm() {
   const [isPending, startTransition] = useTransition();
@@ -29,7 +30,11 @@ export function IngestForm() {
   return (
     <form
       className="bg-white border border-gray-200 p-4 mb-6 grid gap-3"
-      action={onSubmit}
+      onSubmit={(event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        onSubmit(formData);
+      }}
     >
       <h3 className="text-sm font-bold text-[#191C1D]">Ingresar nueva PQRS</h3>
       <textarea

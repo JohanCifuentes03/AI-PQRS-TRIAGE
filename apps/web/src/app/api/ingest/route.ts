@@ -1,9 +1,37 @@
 import { NextResponse } from 'next/server';
-import { PDFParse } from 'pdf-parse';
+import { createRequire } from 'module';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { join } from 'path';
+import { tmpdir } from 'os';
 
 export const runtime = 'nodejs';
 
 const API_URL = process.env.NEXT_SERVER_API_URL || 'http://localhost:4000';
+const require = createRequire(import.meta.url);
+const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require('pdf-parse/lib/pdf-parse.js');
+const execFileAsync = promisify(execFile);
+
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  try {
+    const parsed = await pdfParse(buffer);
+    return parsed.text?.trim() || '';
+  } catch {
+    const dir = await mkdtemp(join(tmpdir(), 'pqrs-pdf-'));
+    const inputPath = join(dir, 'input.pdf');
+    const outputPath = join(dir, 'output.txt');
+
+    try {
+      await writeFile(inputPath, buffer);
+      await execFileAsync('pdftotext', ['-layout', '-enc', 'UTF-8', inputPath, outputPath]);
+      const txt = await readFile(outputPath, 'utf-8');
+      return txt.trim();
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -19,10 +47,7 @@ export async function POST(request: Request) {
     } else if (file && file instanceof File) {
       const buffer = Buffer.from(await file.arrayBuffer());
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-        const parser = new PDFParse({ data: buffer });
-        const parsed = await parser.getText();
-        texto = parsed.text.trim();
-        await parser.destroy();
+        texto = await extractPdfText(buffer);
       } else {
         texto = buffer.toString('utf-8').trim();
       }

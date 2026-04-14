@@ -3,8 +3,28 @@ import { Topbar } from '@/components/topbar';
 import { fetchPqrsList } from '@/actions/pqrs.actions';
 
 export default async function AnalyticsPage() {
-  const all = await fetchPqrsList({ page: 1, limit: 100 });
-  const records = all.data;
+  let records: Array<{
+    id: string;
+    texto: string;
+    canal: string;
+    tipo: string | null;
+    tema: string | null;
+    subtema: string | null;
+    urgencia: string | null;
+    entidad: string | null;
+    riesgo: string | null;
+    resumen: string | null;
+    confianza: number | null;
+    estado: string;
+    createdAt: string;
+  }> = [];
+
+  try {
+    const all = await fetchPqrsList({ page: 1, limit: 100 });
+    records = all.data;
+  } catch {
+    records = [];
+  }
 
   const byTema = records.reduce<Record<string, number>>((acc, item) => {
     const key = item.tema || 'Sin tema';

@@ -5,7 +5,33 @@ import { IngestForm } from '@/components/ingest-form';
 import { fetchPqrsList } from '@/actions/pqrs.actions';
 
 export default async function HomePage() {
-  const pqrs = await fetchPqrsList({ estado: 'pendiente', page: 1, limit: 20 });
+  let pqrs = {
+    data: [],
+    meta: { total: 0, page: 1, totalPages: 1 },
+  } as {
+    data: Array<{
+      id: string;
+      texto: string;
+      canal: string;
+      tipo: string | null;
+      tema: string | null;
+      subtema: string | null;
+      urgencia: string | null;
+      entidad: string | null;
+      riesgo: string | null;
+      resumen: string | null;
+      confianza: number | null;
+      estado: string;
+      createdAt: string;
+    }>;
+    meta: { total: number; page: number; totalPages: number };
+  };
+
+  try {
+    pqrs = await fetchPqrsList({ estado: 'pendiente', page: 1, limit: 20 });
+  } catch {
+    // API may still be booting; render empty state instead of 500
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#191C1D]">
