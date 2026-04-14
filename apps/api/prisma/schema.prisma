@@ -10,6 +10,7 @@ datasource db {
 model Pqrs {
   id        String   @id @default(uuid())
   texto     String
+  sourceType String? @default("manual_text")
   canal     String
   tipo      String?
   tema      String?
@@ -20,6 +21,7 @@ model Pqrs {
   resumen   String?
   confianza Float?
   estado    String   @default("pendiente")
+  pipelineTrace Json?
   embedding Unsupported("vector(1536)")?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -45,6 +45,27 @@ export class PqrsService {
     return { data: record };
   }
 
+  async findTrace(id: string) {
+    const record = await this.prisma.pqrs.findUnique({ where: { id } });
+    if (!record) throw new NotFoundException(`PQRS ${id} not found`);
+
+    const auditLogs = await this.prisma.auditLog.findMany({
+      where: { pqrsId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    return {
+      data: {
+        pqrsId: id,
+        estado: record.estado,
+        sourceType: record.sourceType,
+        pipelineTrace: record.pipelineTrace,
+        auditLogs,
+      },
+    };
+  }
+
   async approve(
     id: string,
     input: { usuario: string },

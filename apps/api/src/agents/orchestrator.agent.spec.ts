@@ -50,6 +50,11 @@ describe('OrchestratorAgent', () => {
       duplicados: ['uuid-prev-1'],
       confianza: expect.any(Number),
       resumen: expect.any(String),
+      trace: expect.objectContaining({
+        runId: expect.any(String),
+        totalMs: expect.any(Number),
+        steps: expect.any(Array),
+      }),
     });
   });
 

@@ -41,15 +41,19 @@ export async function POST(request: Request) {
     const file = formData.get('file');
 
     let texto = '';
+    let sourceType = 'manual_text';
 
     if (typeof textInput === 'string' && textInput.trim().length > 0) {
       texto = textInput.trim();
+      sourceType = 'manual_text';
     } else if (file && file instanceof File) {
       const buffer = Buffer.from(await file.arrayBuffer());
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         texto = await extractPdfText(buffer);
+        sourceType = 'pdf';
       } else {
         texto = buffer.toString('utf-8').trim();
+        sourceType = 'txt';
       }
     }
 
@@ -63,7 +67,7 @@ export async function POST(request: Request) {
     const res = await fetch(`${API_URL}/triage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texto, canal }),
+      body: JSON.stringify({ texto, canal, sourceType }),
     });
 
     const payload = await res.json();

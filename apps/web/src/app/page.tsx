@@ -52,7 +52,6 @@ export default async function HomePage() {
 
         <InboxShell
           data={pqrs.data}
-          total={pqrs.meta.total}
           page={pqrs.meta.page}
           totalPages={pqrs.meta.totalPages}
         />

@@ -39,6 +39,19 @@ export async function fetchPqrsDetail(id: string) {
     data: {
       id: string;
       texto: string;
+      sourceType?: string | null;
+      pipelineTrace?: {
+        runId: string;
+        startedAt: string;
+        finishedAt: string;
+        totalMs: number;
+        steps: Array<{
+          agent: string;
+          status: 'ok' | 'fallback' | 'error';
+          durationMs: number;
+          output: Record<string, unknown>;
+        }>;
+      } | null;
       canal: string;
       tipo: string | null;
       tema: string | null;
@@ -50,8 +63,40 @@ export async function fetchPqrsDetail(id: string) {
       confianza: number | null;
       estado: string;
       createdAt: string;
+      updatedAt: string;
     };
   }>(`/pqrs/${id}`);
+}
+
+export async function fetchPqrsTrace(id: string) {
+  return apiClient<{
+    data: {
+      pqrsId: string;
+      estado: string;
+      sourceType: string | null;
+      pipelineTrace:
+        | {
+            runId: string;
+            startedAt: string;
+            finishedAt: string;
+            totalMs: number;
+            steps: Array<{
+              agent: string;
+              status: 'ok' | 'fallback' | 'error';
+              durationMs: number;
+              output: Record<string, unknown>;
+            }>;
+          }
+        | null;
+      auditLogs: Array<{
+        id: string;
+        accion: string;
+        usuario: string;
+        detalles: Record<string, unknown> | null;
+        createdAt: string;
+      }>;
+    };
+  }>(`/pqrs/${id}/trace`);
 }
 
 export async function approvePqrs(id: string, usuario: string) {

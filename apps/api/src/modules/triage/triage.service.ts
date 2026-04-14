@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../common/prisma.service';
 import { OrchestratorAgent } from '../../agents/orchestrator.agent';
 import { LlmProvider } from '../../llm/llm.provider';
@@ -11,7 +12,9 @@ export class TriageService {
     private readonly llm: LlmProvider,
   ) {}
 
-  async runTriage(input: { texto: string; canal: string }): Promise<Record<string, unknown>> {
+  async runTriage(
+    input: { texto: string; canal: string; sourceType?: string },
+  ): Promise<Record<string, unknown>> {
     const result = await this.orchestrator.run(input.texto);
 
     let embedding: number[] | null = null;
@@ -33,6 +36,8 @@ export class TriageService {
         riesgo: result.riesgo,
         resumen: result.resumen,
         confianza: result.confianza,
+        sourceType: input.sourceType || 'manual_text',
+        pipelineTrace: result.trace as Prisma.InputJsonValue,
         estado: 'pendiente',
       },
     });

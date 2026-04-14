@@ -17,8 +17,12 @@ export class TriageController {
   @ApiOperation({ summary: 'Run AI triage on a PQRS text' })
   async triage(@Body() body: unknown) {
     const input = triageInputSchema.parse(body);
+    const sourceType =
+      typeof (body as Record<string, unknown>)?.sourceType === 'string'
+        ? String((body as Record<string, unknown>).sourceType)
+        : undefined;
     this.logger.log(`Triage request received canal=${input.canal}`);
-    const result = await this.triageService.runTriage(input);
+    const result = await this.triageService.runTriage({ ...input, sourceType });
     return { success: true, data: result };
   }
 }

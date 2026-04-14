@@ -40,6 +40,12 @@ export class PqrsController {
     return this.pqrsService.findOne(id);
   }
 
+  @Get(':id/trace')
+  @ApiOperation({ summary: 'Get IA pipeline trace and audit logs' })
+  async findTrace(@Param('id') id: string) {
+    return this.pqrsService.findTrace(id);
+  }
+
   @Patch(':id/approve')
   @UseGuards(SimpleRateLimitGuard)
   @HttpCode(HttpStatus.OK)

@@ -107,6 +107,9 @@ export function PqrsTable({ data, total, page, totalPages, onSelect }: PqrsTable
               <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
                 Entidad
               </th>
+              <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
+                Estado
+              </th>
               <th className="px-6 py-4 text-[11px] font-extrabold text-gray-500 uppercase tracking-widest text-right">
                 Confianza
               </th>
@@ -143,6 +146,11 @@ export function PqrsTable({ data, total, page, totalPages, onSelect }: PqrsTable
                     {pqrs.entidad || 'Sin asignar'}
                   </span>
                 </td>
+                <td className="px-6 py-5">
+                  <span className="text-[10px] px-2 py-1 rounded bg-gray-100 text-gray-700 font-bold uppercase">
+                    {pqrs.estado}
+                  </span>
+                </td>
                 <td className="px-6 py-5 text-right">
                   <span className="text-sm font-bold text-[#191C1D]">
                     {pqrs.confianza ? `${Math.round(pqrs.confianza * 100)}%` : '-'}
@@ -152,7 +160,7 @@ export function PqrsTable({ data, total, page, totalPages, onSelect }: PqrsTable
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                   No se encontraron PQRS
                 </td>
               </tr>
