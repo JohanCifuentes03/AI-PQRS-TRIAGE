@@ -1,167 +1,243 @@
-# AI PQRS Triage
+# AI-PQRS-Triage
 
-MVP funcional para triage inteligente de PQRS (Bogota Te Escucha) con arquitectura multiagente, validacion humana y trazabilidad completa.
+Sistema de triage inteligente para PQRS con arquitectura multiagente, deduplicacion semantica y validacion humana (human-in-the-loop).
 
-## Demo rapida
+## Tabla de contenido
 
-### Flujo principal (lo que debes mostrar)
+- [Vision del proyecto](#vision-del-proyecto)
+- [Funcionalidades](#funcionalidades)
+- [Demo](#demo)
+- [Arquitectura](#arquitectura)
+- [Stack tecnologico](#stack-tecnologico)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Modelo de datos](#modelo-de-datos)
+- [API](#api)
+- [Flujo end-to-end](#flujo-end-to-end)
+- [Setup local](#setup-local)
+- [Variables de entorno](#variables-de-entorno)
+- [Scripts](#scripts)
+- [Calidad](#calidad)
+- [Roadmap corto](#roadmap-corto)
 
-1. Abre la bandeja en `http://localhost:3000`
-2. En `Ingresar nueva PQRS`, sube un PDF de `example-data/` o pega texto
-3. Click en `Triagear PQRS`
-4. Selecciona la fila creada en la tabla
-5. Abre `Ver ejecucion IA`
-6. Muestra los 5 pasos del pipeline (classifier, risk, router, deduplicator, summary)
-7. Click en `Aprobar` o `Enrutar` y verifica feedback + cambio de estado
+## Vision del proyecto
+
+Las entidades publicas reciben miles de PQRS y el cuello de botella suele estar en la clasificacion inicial, deteccion de urgencias y enrutamiento a la dependencia correcta.
+
+AI-PQRS-Triage automatiza esa primera capa operativa:
+
+- clasifica la solicitud,
+- identifica riesgo y urgencia,
+- sugiere entidad responsable,
+- detecta posibles duplicados,
+- y deja decision final al funcionario.
+
+## Funcionalidades
+
+- Ingesta de PQRS por texto, `.pdf` y `.txt` desde web
+- Triage multiagente (classifier, risk, router, deduplicator, summary)
+- Fallback heuristico si no hay `OPENAI_API_KEY`
+- Bandeja operativa de pendientes
+- Aprobacion, correccion y enrutamiento manual
+- Trazabilidad de acciones humanas (`audit_logs`)
+- Trazabilidad de ejecucion IA (`pipelineTrace`)
+- Vista de analytics basica
+
+## Demo
+
+### Demo GIF
+
+![Demo de triage](docs/demo.gif)
+
+### Datos de ejemplo
+
+El proyecto incluye PDFs de prueba en `example-data/` para disparar el flujo de triage.
 
 ## Arquitectura
 
+El repositorio es un monorepo con 3 paquetes principales:
+
+1. `apps/api` (NestJS)
+2. `apps/web` (Next.js)
+3. `packages/shared` (tipos/schemas compartidos)
+
+### Backend (NestJS)
+
+- `POST /triage`: recibe texto + canal + sourceType y ejecuta pipeline IA
+- `GET /pqrs`: bandeja paginada
+- `GET /pqrs/:id`: detalle de solicitud
+- `GET /pqrs/:id/trace`: trazas de pipeline + audit logs
+- `PATCH /pqrs/:id/approve`
+- `PATCH /pqrs/:id/correct`
+- `PATCH /pqrs/:id/route`
+
+### Frontend (Next.js)
+
+- Bandeja principal con tabla de pendientes
+- Panel de detalle con acciones de operador
+- Modal de trazabilidad multiagente (paso a paso)
+- Ingesta de PDF/texto desde UI
+- Dashboard de analytics
+
+### Pipeline multiagente
+
+1. `ClassifierAgent`: tipo, tema, subtema
+2. `RiskDetectorAgent`: urgencia, riesgo
+3. `RouterAgent`: entidad sugerida
+4. `DeduplicatorAgent`: similares por embedding (o fallback texto)
+5. `Summary`: resumen de una linea
+
+El resultado persiste en `pqrs.pipelineTrace` con tiempos y salida por agente.
+
+## Stack tecnologico
+
 - Monorepo: `pnpm workspaces`
-- Backend: NestJS + Prisma + PostgreSQL 15 + pgvector
-- Frontend: Next.js App Router + Tailwind
-- Shared: tipos/schemas Zod en `packages/shared`
-- IA:
-  - Modo normal: OpenAI (`OPENAI_API_KEY`)
-  - Modo fallback: heuristicas locales si no hay key
+- API: `NestJS`, `Prisma`, `PostgreSQL 15`, `pgvector`
+- Web: `Next.js App Router`, `React`, `Tailwind`
+- IA: `OpenAI` + fallback heuristico
+- Validacion: `Zod`
+- Testing: `Jest` (API), `Vitest` (Web)
 
-## Estructura del repo
+## Estructura del repositorio
 
-- `apps/api` API NestJS
-- `apps/web` UI Next.js
-- `packages/shared` contratos compartidos
-- `example-data` PDFs de ejemplo para demo
+```text
+.
+├── apps
+│   ├── api
+│   │   ├── prisma
+│   │   └── src
+│   └── web
+│       └── src
+├── packages
+│   └── shared
+├── docs
+│   └── demo.gif
+├── example-data
+└── docker-compose.yml
+```
 
-## Arranque local
+## Modelo de datos
 
-1. Instala dependencias
+### Tabla `pqrs`
+
+- `id`
+- `texto`
+- `sourceType` (`manual_text` | `pdf` | `txt`)
+- `canal` (`web` | `escrito` | `presencial`)
+- `tipo`, `tema`, `subtema`
+- `urgencia`, `entidad`, `riesgo`
+- `resumen`, `confianza`
+- `estado` (`pendiente` | `aprobado` | `corregido` | `enrutado`)
+- `pipelineTrace` (json con pasos de agentes)
+- `embedding` (`vector(1536)`)
+- `createdAt`, `updatedAt`
+
+### Tabla `audit_logs`
+
+- `id`
+- `pqrsId`
+- `accion` (`aprobar` | `corregir` | `enrutar`)
+- `usuario`
+- `detalles` (json)
+- `createdAt`
+
+## API
+
+Swagger disponible en:
+
+`http://localhost:4000/api/docs`
+
+Endpoints clave:
+
+- `POST /triage`
+- `GET /pqrs`
+- `GET /pqrs/:id`
+- `GET /pqrs/:id/trace`
+- `PATCH /pqrs/:id/approve`
+- `PATCH /pqrs/:id/correct`
+- `PATCH /pqrs/:id/route`
+
+## Flujo end-to-end
+
+1. Operador carga texto/PDF en web
+2. Web extrae texto y llama `POST /triage`
+3. API ejecuta pipeline multiagente
+4. API persiste resultado + trace + embedding
+5. PQRS aparece en bandeja pendiente
+6. Operador revisa sugerencia IA y decide
+7. API registra accion en `audit_logs`
+
+## Setup local
+
+### Requisitos
+
+- Node.js 20+
+- pnpm 9+
+- Docker + Docker Compose
+
+### Instalacion
 
 ```bash
 pnpm install
-```
-
-2. Crea `.env`
-
-```bash
 cp .env.example .env
-```
-
-3. Levanta base de datos
-
-```bash
 docker compose up -d
-```
-
-4. Migra y (opcional) seed
-
-```bash
 pnpm db:migrate
 pnpm db:seed
-```
-
-5. Inicia apps
-
-```bash
 pnpm dev
 ```
 
-Notas:
-- Si el puerto `3000` o `4000` esta ocupado, libera puertos con:
+Si algun puerto esta ocupado:
 
 ```bash
 for p in 3000 3001 3002 3010 4000; do fuser -k ${p}/tcp 2>/dev/null || true; done
 ```
 
-- Los scripts del API leen `.env` automaticamente (via `dotenv -e ../../.env`).
+## Variables de entorno
 
-## Endpoints clave
+Archivo base: `.env.example`
 
-- `POST /triage`
-- `GET /pqrs`
-- `GET /pqrs/:id`
-- `GET /pqrs/:id/trace` (pipeline + audit)
-- `PATCH /pqrs/:id/approve`
-- `PATCH /pqrs/:id/correct`
-- `PATCH /pqrs/:id/route`
-- Swagger: `http://localhost:4000/api/docs`
+Variables importantes:
 
-## Pipeline multiagente
+- `DATABASE_URL`
+- `API_PORT`
+- `CORS_ORIGIN`
+- `NEXT_SERVER_API_URL`
+- `OPENAI_API_KEY` (opcional; sin key se usa fallback)
+- `OPENAI_MODEL`
+- `OPENAI_EMBEDDING_MODEL`
 
-Para cada PQRS:
+## Scripts
 
-1. `ClassifierAgent` -> tipo/tema/subtema
-2. `RiskDetectorAgent` -> urgencia/riesgo
-3. `RouterAgent` -> entidad responsable
-4. `DeduplicatorAgent` -> duplicados
-5. `Summary` -> resumen de una linea
+### Root
 
-El sistema guarda `pipelineTrace` con:
-- `runId`
-- tiempos (`startedAt`, `finishedAt`, `totalMs`)
-- estado por agente (`ok/fallback/error`)
-- salida JSON por paso
+- `pnpm dev`
+- `pnpm build`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm db:migrate`
+- `pnpm db:seed`
 
-## UX operativa implementada
+### API
 
-- Panel de detalle con:
-  - estado actual (badge)
-  - sugerencia IA editable
-  - boton `Ver ejecucion IA`
-  - acciones `Aprobar`, `Corregir`, `Enrutar`
-- Feedback visual en acciones:
-  - mensaje de procesamiento
-  - confirmacion de exito/error
-  - actualizacion de bandeja
+- `pnpm --filter @ai-pqrs-triage/api dev`
+- `pnpm --filter @ai-pqrs-triage/api test`
+- `pnpm --filter @ai-pqrs-triage/api db:migrate`
 
-## Grabar GIF para el README
+### Web
 
-Puedes grabar un GIF de demo con dos opciones.
-
-### Opcion A (recomendada): Peek (Linux)
-
-1. Instala Peek:
-
-```bash
-sudo apt install peek
-```
-
-2. Ejecuta:
-
-```bash
-peek
-```
-
-3. Selecciona el area de la pantalla
-4. Click en `Record`
-5. Haz el flujo: subir PDF -> triage -> ver ejecucion IA -> aprobar/enrutar
-6. Guarda como `docs/demo.gif`
-
-### Opcion B: ffmpeg (CLI)
-
-```bash
-ffmpeg -video_size 1366x768 -framerate 12 -f x11grab -i :0.0+0,0 -vf "fps=10,scale=1024:-1:flags=lanczos" docs/demo.gif
-```
-
-Deten con `Ctrl+C`.
-
-## Demo GIF
-
-![Demo de triage](docs/demo.gif)
-
-## Tips para demo con profesor
-
-- Usa un PDF de `example-data/PQRS-SYN-00001.pdf`
-- Muestra `Ver ejecucion IA` (esto evidencia multiagente)
-- Luego `Aprobar` y enseña:
-  - cambio de estado
-  - registro en trace/audit
+- `pnpm --filter @ai-pqrs-triage/web dev`
+- `pnpm --filter @ai-pqrs-triage/web test`
 
 ## Calidad
 
-- API: cobertura > 80%
-- Web: cobertura > 80%
-- Typecheck y tests pasando
+Estado actual del proyecto:
 
-Comandos:
+- API test suite pasando
+- Web test suite pasando
+- Typecheck global pasando
+- Cobertura por encima del minimo definido
+
+Comandos de control:
 
 ```bash
 pnpm -r lint
@@ -170,9 +246,9 @@ pnpm --filter @ai-pqrs-triage/api test
 pnpm --filter @ai-pqrs-triage/web test
 ```
 
-## Consideraciones eticas
+## Roadmap corto
 
-- Human-in-the-loop obligatorio
-- Audit log por accion funcional
-- Riesgo conservador ante ambiguedad
-- Trazabilidad end-to-end del pipeline
+- OCR para imagenes escaneadas
+- Dashboard de carga por entidad
+- Exportacion de reportes
+- Integracion SSO para usuarios operadores
