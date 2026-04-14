@@ -11,6 +11,25 @@ services:
       POSTGRES_DB: ai_pqrs_triage
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pdf-extractor:
+    build: ./services/pdf-extractor
+    container_name: ai-pqrs-pdf-extractor
+    restart: unless-stopped
+    ports:
+      - "4100:4100"
+    environment:
+      PDF_EXTRACTOR_PORT: "4100"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4100/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:

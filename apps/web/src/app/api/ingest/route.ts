@@ -1,47 +1,26 @@
 import { NextResponse } from 'next/server';
-import { createRequire } from 'module';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
 
 export const runtime = 'nodejs';
 
 const API_URL = process.env.NEXT_SERVER_API_URL || 'http://localhost:4000';
-const require = createRequire(import.meta.url);
-const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require('pdf-parse/lib/pdf-parse.js');
-const execFileAsync = promisify(execFile);
+const PDF_EXTRACTOR_URL = process.env.PDF_EXTRACTOR_URL || 'http://localhost:4100';
 
 async function extractPdfText(buffer: Buffer): Promise<string> {
-  try {
-    const parsed = await pdfParse(buffer);
-    const text = parsed.text?.trim() || '';
-    if (text.length > 0) {
-      return text;
-    }
-  } catch {
-    // fall through to secondary strategy
+  const res = await fetch(`${PDF_EXTRACTOR_URL}/extract`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/octet-stream' },
+    body: buffer,
+  });
+
+  const payload = await res.json();
+
+  if (!res.ok || !payload.success) {
+    throw new Error(
+      payload.error || `PDF extraction failed (status ${res.status})`,
+    );
   }
 
-  if (process.platform === 'win32') {
-    return '';
-  }
-
-  const dir = await mkdtemp(join(tmpdir(), 'pqrs-pdf-'));
-  const inputPath = join(dir, 'input.pdf');
-  const outputPath = join(dir, 'output.txt');
-
-  try {
-    await writeFile(inputPath, buffer);
-    await execFileAsync('pdftotext', ['-layout', '-enc', 'UTF-8', inputPath, outputPath]);
-    const txt = await readFile(outputPath, 'utf-8');
-    return txt.trim();
-  } catch {
-    return '';
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
+  return payload.text;
 }
 
 export async function POST(request: Request) {
@@ -75,21 +54,34 @@ export async function POST(request: Request) {
       );
     }
 
-    const res = await fetch(`${API_URL}/triage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ texto, canal, sourceType }),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API_URL}/triage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto, canal, sourceType }),
+      });
+    } catch {
+      return NextResponse.json(
+        { success: false, message: 'No se pudo conectar con la API de triage (puerto 4000).' },
+        { status: 502 },
+      );
+    }
 
-    const payload = await res.json();
+    let payload: unknown;
+    try {
+      payload = await res.json();
+    } catch {
+      payload = { success: false, message: 'La API devolvio una respuesta no valida.' };
+    }
+
     return NextResponse.json(payload, { status: res.status });
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error inesperado en ingesta';
+    const isPdfError = message.toLowerCase().includes('pdf');
     return NextResponse.json(
-      {
-        success: false,
-        message: error instanceof Error ? error.message : 'Error inesperado en ingesta',
-      },
-      { status: 500 },
+      { success: false, message },
+      { status: isPdfError ? 422 : 500 },
     );
   }
 }

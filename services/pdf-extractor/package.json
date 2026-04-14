@@ -1,0 +1,12 @@
+{
+  "name": "@ai-pqrs-triage/pdf-extractor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.mjs",
+    "build": "echo 'No build needed - runs in Docker'"
+  },
+  "dependencies": {
+    "busboy": "^1.6.0"
+  }
+}
