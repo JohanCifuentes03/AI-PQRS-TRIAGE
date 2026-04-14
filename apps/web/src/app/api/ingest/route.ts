@@ -16,20 +16,31 @@ const execFileAsync = promisify(execFile);
 async function extractPdfText(buffer: Buffer): Promise<string> {
   try {
     const parsed = await pdfParse(buffer);
-    return parsed.text?.trim() || '';
-  } catch {
-    const dir = await mkdtemp(join(tmpdir(), 'pqrs-pdf-'));
-    const inputPath = join(dir, 'input.pdf');
-    const outputPath = join(dir, 'output.txt');
-
-    try {
-      await writeFile(inputPath, buffer);
-      await execFileAsync('pdftotext', ['-layout', '-enc', 'UTF-8', inputPath, outputPath]);
-      const txt = await readFile(outputPath, 'utf-8');
-      return txt.trim();
-    } finally {
-      await rm(dir, { recursive: true, force: true });
+    const text = parsed.text?.trim() || '';
+    if (text.length > 0) {
+      return text;
     }
+  } catch {
+    // fall through to secondary strategy
+  }
+
+  if (process.platform === 'win32') {
+    return '';
+  }
+
+  const dir = await mkdtemp(join(tmpdir(), 'pqrs-pdf-'));
+  const inputPath = join(dir, 'input.pdf');
+  const outputPath = join(dir, 'output.txt');
+
+  try {
+    await writeFile(inputPath, buffer);
+    await execFileAsync('pdftotext', ['-layout', '-enc', 'UTF-8', inputPath, outputPath]);
+    const txt = await readFile(outputPath, 'utf-8');
+    return txt.trim();
+  } catch {
+    return '';
+  } finally {
+    await rm(dir, { recursive: true, force: true });
   }
 }
 

@@ -5,6 +5,7 @@
   "description": "AI-powered PQRS triage system for Bogota Te Escucha",
   "scripts": {
     "dev": "pnpm --filter @ai-pqrs-triage/shared build && concurrently \"pnpm --filter @ai-pqrs-triage/api dev\" \"pnpm --filter @ai-pqrs-triage/web dev\"",
+    "kill:dev": "node ./scripts/kill-dev.mjs",
     "dev:api": "pnpm --filter @ai-pqrs-triage/api dev",
     "dev:web": "pnpm --filter @ai-pqrs-triage/web dev",
     "build": "pnpm --filter @ai-pqrs-triage/shared build && pnpm --filter @ai-pqrs-triage/api build && pnpm --filter @ai-pqrs-triage/web build",
@@ -13,6 +14,7 @@
     "test": "pnpm -r test",
     "test:coverage": "pnpm -r test:coverage",
     "db:migrate": "pnpm --filter @ai-pqrs-triage/api db:migrate",
+    "db:reset:empty": "pnpm --filter @ai-pqrs-triage/api db:reset:empty",
     "db:seed": "pnpm --filter @ai-pqrs-triage/api db:seed",
     "db:studio": "pnpm --filter @ai-pqrs-triage/api db:studio"
   },
