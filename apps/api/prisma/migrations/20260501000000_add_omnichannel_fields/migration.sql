@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "pqrs" ADD COLUMN "remitente" TEXT;
+ALTER TABLE "pqrs" ADD COLUMN "asunto" TEXT;
+ALTER TABLE "pqrs" ADD COLUMN "adjuntos" JSONB;
+ALTER TABLE "pqrs" ADD COLUMN "ocrUsado" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "pqrs" ADD COLUMN "advertenciaOcr" BOOLEAN NOT NULL DEFAULT false;

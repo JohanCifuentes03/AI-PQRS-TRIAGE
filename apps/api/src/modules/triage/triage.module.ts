@@ -19,5 +19,6 @@ import { OrchestratorAgent } from '../../agents/orchestrator.agent';
     OrchestratorAgent,
     TriageService,
   ],
+  exports: [TriageService],
 })
 export class TriageModule {}

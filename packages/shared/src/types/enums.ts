@@ -2,6 +2,8 @@ export enum Canal {
   WEB = 'web',
   ESCRITO = 'escrito',
   PRESENCIAL = 'presencial',
+  EMAIL = 'email',
+  API_EXTERNA = 'api_externa',
 }
 
 export enum Urgencia {

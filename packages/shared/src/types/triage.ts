@@ -3,6 +3,12 @@ import { Canal } from './enums';
 export interface TriageInput {
   texto: string;
   canal: Canal;
+  sourceType?: string;
+  remitente?: string;
+  asunto?: string;
+  adjuntos?: Array<{ nombre: string; tipo: string }>;
+  ocrUsado?: boolean;
+  advertenciaOcr?: boolean;
 }
 
 export interface TriageOutput {
@@ -21,6 +27,10 @@ export interface PqrsRecord {
   id: string;
   texto: string;
   canal: Canal;
+  sourceType: string | null;
+  remitente: string | null;
+  asunto: string | null;
+  adjuntos: Array<{ nombre: string; tipo: string }> | null;
   tipo: string | null;
   tema: string | null;
   subtema: string | null;
@@ -30,6 +40,8 @@ export interface PqrsRecord {
   resumen: string | null;
   confianza: number | null;
   estado: string;
+  ocrUsado: boolean;
+  advertenciaOcr: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

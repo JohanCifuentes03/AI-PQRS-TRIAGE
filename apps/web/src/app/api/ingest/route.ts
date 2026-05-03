@@ -5,11 +5,18 @@ export const runtime = 'nodejs';
 const API_URL = process.env.NEXT_SERVER_API_URL || 'http://localhost:4000';
 const PDF_EXTRACTOR_URL = process.env.PDF_EXTRACTOR_URL || 'http://localhost:4100';
 
-async function extractPdfText(buffer: Buffer): Promise<string> {
+type PdfExtractionResult = {
+  text: string;
+  ocrUsado?: boolean;
+  advertenciaOcr?: boolean;
+  confianzaOcr?: number;
+};
+
+async function extractPdfText(buffer: Buffer): Promise<PdfExtractionResult> {
   const res = await fetch(`${PDF_EXTRACTOR_URL}/extract`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/octet-stream' },
-    body: buffer,
+    body: new Uint8Array(buffer),
   });
 
   const payload = await res.json();
@@ -20,31 +27,47 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
     );
   }
 
-  return payload.text;
+  return {
+    text: String(payload.text || '').trim(),
+    ocrUsado: payload.ocrUsado,
+    advertenciaOcr: payload.advertenciaOcr,
+    confianzaOcr: payload.confianzaOcr,
+  };
 }
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const canal = String(formData.get('canal') || 'web');
     const textInput = formData.get('texto');
     const file = formData.get('file');
 
     let texto = '';
     let sourceType = 'manual_text';
+    let ocrUsado: boolean | undefined;
+    let advertenciaOcr: boolean | undefined;
+    let confianzaOcr: number | undefined;
 
     if (typeof textInput === 'string' && textInput.trim().length > 0) {
       texto = textInput.trim();
       sourceType = 'manual_text';
-    } else if (file && file instanceof File) {
+    } else if (file && file instanceof File && file.size > 0) {
       const buffer = Buffer.from(await file.arrayBuffer());
       if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-        texto = await extractPdfText(buffer);
+        const extraction = await extractPdfText(buffer);
+        texto = extraction.text;
+        ocrUsado = extraction.ocrUsado;
+        advertenciaOcr = extraction.advertenciaOcr;
+        confianzaOcr = extraction.confianzaOcr;
         sourceType = 'pdf';
       } else {
         texto = buffer.toString('utf-8').trim();
         sourceType = 'txt';
       }
+    }
+
+    let canal = String(formData.get('canal') || '');
+    if (!canal) {
+      canal = sourceType === 'manual_text' ? 'presencial' : 'escrito';
     }
 
     if (!texto || texto.length < 10) {
@@ -59,7 +82,14 @@ export async function POST(request: Request) {
       res = await fetch(`${API_URL}/triage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto, canal, sourceType }),
+        body: JSON.stringify({
+          texto,
+          canal,
+          sourceType,
+          ocrUsado,
+          advertenciaOcr,
+          confianzaOcr,
+        }),
       });
     } catch {
       return NextResponse.json(

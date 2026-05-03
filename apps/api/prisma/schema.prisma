@@ -8,23 +8,28 @@ datasource db {
 }
 
 model Pqrs {
-  id        String   @id @default(uuid())
-  texto     String
-  sourceType String? @default("manual_text")
-  canal     String
-  tipo      String?
-  tema      String?
-  subtema   String?
-  urgencia  String?
-  entidad   String?
-  riesgo    String?
-  resumen   String?
-  confianza Float?
-  estado    String   @default("pendiente")
-  pipelineTrace Json?
-  embedding Unsupported("vector(1536)")?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  texto           String
+  sourceType      String?  @default("manual_text")
+  canal           String
+  remitente       String?
+  asunto          String?
+  adjuntos        Json?
+  tipo            String?
+  tema            String?
+  subtema         String?
+  urgencia        String?
+  entidad         String?
+  riesgo          String?
+  resumen         String?
+  confianza       Float?
+  estado          String   @default("pendiente")
+  ocrUsado        Boolean  @default(false)
+  advertenciaOcr  Boolean  @default(false)
+  pipelineTrace   Json?
+  embedding       Unsupported("vector(1536)")?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   auditLogs AuditLog[]
 
@@ -42,4 +47,12 @@ model AuditLog {
   pqrs Pqrs @relation(fields: [pqrsId], references: [id])
 
   @@map("audit_logs")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
 }

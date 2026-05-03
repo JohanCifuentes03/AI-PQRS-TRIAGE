@@ -4,6 +4,17 @@ import { PrismaService } from '../../common/prisma.service';
 import { OrchestratorAgent } from '../../agents/orchestrator.agent';
 import { LlmProvider } from '../../llm/llm.provider';
 
+interface TriageInput {
+  texto: string;
+  canal: string;
+  sourceType?: string;
+  remitente?: string;
+  asunto?: string;
+  adjuntos?: Array<{ nombre: string; tipo: string }>;
+  ocrUsado?: boolean;
+  advertenciaOcr?: boolean;
+}
+
 @Injectable()
 export class TriageService {
   constructor(
@@ -12,9 +23,7 @@ export class TriageService {
     private readonly llm: LlmProvider,
   ) {}
 
-  async runTriage(
-    input: { texto: string; canal: string; sourceType?: string },
-  ): Promise<Record<string, unknown>> {
+  async runTriage(input: TriageInput): Promise<Record<string, unknown>> {
     const result = await this.orchestrator.run(input.texto);
 
     let embedding: number[] | null = null;
@@ -28,6 +37,12 @@ export class TriageService {
       data: {
         texto: input.texto,
         canal: input.canal,
+        sourceType: input.sourceType || 'manual_text',
+        remitente: input.remitente ?? null,
+        asunto: input.asunto ?? null,
+        adjuntos: input.adjuntos
+          ? (input.adjuntos as unknown as Prisma.InputJsonValue)
+          : undefined,
         tipo: result.tipo,
         tema: result.tema,
         subtema: result.subtema,
@@ -36,9 +51,10 @@ export class TriageService {
         riesgo: result.riesgo,
         resumen: result.resumen,
         confianza: result.confianza,
-        sourceType: input.sourceType || 'manual_text',
         pipelineTrace: result.trace as Prisma.InputJsonValue,
         estado: 'pendiente',
+        ocrUsado: input.ocrUsado ?? false,
+        advertenciaOcr: input.advertenciaOcr ?? false,
       },
     });
 

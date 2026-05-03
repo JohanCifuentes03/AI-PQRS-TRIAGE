@@ -10,6 +10,7 @@ export class PqrsService {
     estado?: string;
     urgencia?: string;
     tipo?: string;
+    canal?: string;
     page: number;
     limit: number;
   }) {
@@ -17,6 +18,7 @@ export class PqrsService {
     if (filters.estado) where.estado = filters.estado;
     if (filters.urgencia) where.urgencia = filters.urgencia;
     if (filters.tipo) where.tipo = filters.tipo;
+    if (filters.canal) where.canal = filters.canal;
 
     const [data, total] = await Promise.all([
       this.prisma.pqrs.findMany({
