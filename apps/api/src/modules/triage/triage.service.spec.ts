@@ -64,4 +64,25 @@ describe('TriageService', () => {
     expect(result).toEqual(expect.objectContaining({ id: 'abc-2', tipo: 'Peticion' }));
     expect(prismaMock.$executeRaw).not.toHaveBeenCalled();
   });
+
+  it('skips database writes in evaluation mode', async () => {
+    orchestratorMock.run.mockResolvedValue({
+      tipo: 'Queja',
+      tema: 'Infraestructura',
+      subtema: 'Alumbrado',
+      urgencia: 'Alta',
+      entidad: 'IDU',
+      riesgo: 'Electrico',
+      duplicados: [],
+      confianza: 0.9,
+      resumen: 'Resumen breve',
+    });
+
+    const result = await service.runTriage({ texto: 'texto', canal: 'web', persist: false });
+
+    expect(result).toEqual(expect.objectContaining({ evaluationMode: true, tipo: 'Queja' }));
+    expect(llmMock.generateEmbedding).not.toHaveBeenCalled();
+    expect(prismaMock.pqrs.create).not.toHaveBeenCalled();
+    expect(prismaMock.$executeRaw).not.toHaveBeenCalled();
+  });
 });

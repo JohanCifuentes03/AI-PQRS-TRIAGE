@@ -56,7 +56,18 @@ describe('TriageController', () => {
       const result = await controller.triage(input);
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockTriageResult);
-      expect(service.runTriage).toHaveBeenCalledWith(input);
+      expect(service.runTriage).toHaveBeenCalledWith({ ...input, persist: true });
+    });
+
+    it('marks evaluation requests as non-persistent', async () => {
+      const input = {
+        texto: 'Hay cables sueltos en la calle y es peligroso',
+        canal: 'web',
+      };
+
+      await controller.triage(input, 'true');
+
+      expect(service.runTriage).toHaveBeenCalledWith({ ...input, persist: false });
     });
 
     it('rejects invalid canal', async () => {

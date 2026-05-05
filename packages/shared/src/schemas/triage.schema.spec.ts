@@ -314,7 +314,7 @@ describe('pqrsQuerySchema', () => {
 
 describe('Enums completeness', () => {
   it('Canal has all expected values', () => {
-    expect(Object.values(Canal)).toEqual(['web', 'escrito', 'presencial']);
+    expect(Object.values(Canal)).toEqual(['web', 'escrito', 'presencial', 'email', 'api_externa']);
   });
 
   it('Urgencia has all expected values', () => {

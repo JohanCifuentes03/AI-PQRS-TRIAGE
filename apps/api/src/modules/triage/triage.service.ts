@@ -13,6 +13,7 @@ interface TriageInput {
   adjuntos?: Array<{ nombre: string; tipo: string }>;
   ocrUsado?: boolean;
   advertenciaOcr?: boolean;
+  persist?: boolean;
 }
 
 @Injectable()
@@ -25,6 +26,10 @@ export class TriageService {
 
   async runTriage(input: TriageInput): Promise<Record<string, unknown>> {
     const result = await this.orchestrator.run(input.texto);
+
+    if (input.persist === false) {
+      return { ...result, evaluationMode: true };
+    }
 
     let embedding: number[] | null = null;
     try {
