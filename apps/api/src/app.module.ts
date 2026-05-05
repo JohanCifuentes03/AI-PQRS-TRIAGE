@@ -6,6 +6,7 @@ import { IngestModule } from './modules/ingest/ingest.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { EmailReaderModule } from './modules/email-reader/email-reader.module';
+import { EvaluationsModule } from './modules/evaluations/evaluations.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { EmailReaderModule } from './modules/email-reader/email-reader.module';
     StatsModule,
     ReportsModule,
     EmailReaderModule,
+    EvaluationsModule,
   ],
 })
 export class AppModule {}
