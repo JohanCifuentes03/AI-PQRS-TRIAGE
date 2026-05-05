@@ -13,13 +13,25 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "test:coverage": "pnpm -r test:coverage",
+    "eval:run": "tsx scripts/eval-run.ts",
+    "eval:aggregate": "tsx scripts/eval-aggregate.ts",
+    "eval:golden": "tsx scripts/eval-run.ts --dataset evals/datasets/pqrs-golden-set.jsonl",
+    "eval:robustness": "tsx scripts/eval-run.ts --dataset evals/datasets/pqrs-robustness-set.jsonl",
+    "eval:ethics": "tsx scripts/eval-run.ts --dataset evals/datasets/pqrs-ethics-set.jsonl",
+    "eval:all": "pnpm eval:golden && pnpm eval:robustness && pnpm eval:ethics",
     "db:migrate": "pnpm --filter @ai-pqrs-triage/api db:migrate",
     "db:reset:empty": "pnpm --filter @ai-pqrs-triage/api db:reset:empty",
     "db:seed": "pnpm --filter @ai-pqrs-triage/api db:seed",
     "db:studio": "pnpm --filter @ai-pqrs-triage/api db:studio"
   },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "@types/node": "^22.0.0",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
   },
   "engines": {
     "node": ">=20.0.0",

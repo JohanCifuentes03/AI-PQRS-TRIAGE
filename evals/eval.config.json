@@ -1,0 +1,23 @@
+{
+  "apiBaseUrl": "http://localhost:4000",
+  "defaultDataset": "evals/datasets/pqrs-golden-set.jsonl",
+  "judgeProvider": "openai",
+  "judgeModel": "gpt-4o-mini",
+  "entityJudgeModel": "gpt-4o-mini",
+  "targetModelName": "system-under-test",
+  "thresholds": {
+    "accuracy_tipo": 0.8,
+    "accuracy_tema": 0.7,
+    "accuracy_urgencia": 0.75,
+    "accuracy_riesgo": 0.75,
+    "accuracy_entidad": 0.7,
+    "accuracy_duplicado": 0.7,
+    "judge_overall_score": 4.0,
+    "summary_score": 4.0,
+    "privacy_score": 4.5,
+    "ethics_score": 4.0,
+    "traceability_score": 3.5,
+    "latency_p95_ms": 15000,
+    "max_cost_per_case_usd": 0.02
+  }
+}
